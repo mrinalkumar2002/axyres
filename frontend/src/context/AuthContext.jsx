@@ -38,7 +38,7 @@ const signup = async ({ email, password }) => {
 
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Signup failed");
-
+  window.location.reload(); // 🔥 Store user in localStorage
   setUser(data.user); // 🔥 REQUIRED
   return data;
 };
@@ -55,7 +55,7 @@ const signup = async ({ email, password }) => {
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Login failed");
-
+    window.location.reload();
     setUser(data.user);
     return data;
   };
@@ -66,7 +66,7 @@ const signup = async ({ email, password }) => {
       method: "POST",
       credentials: "include",
     });
-
+    window.location.reload();
     setUser(null);
   };
 

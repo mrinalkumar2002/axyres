@@ -33,21 +33,6 @@ export default function WhyAxyres() {
             Real scoring beyond keyword stuffing — section formatting, verb fit, 
             seniority alignment, and recruiter perception.
           </p>
-          
-          {/* Internal Progress Ring Score Component */}
-          <div className="score-mockup-wrapper">
-            <div className="progress-ring-container">
-              <svg width="80" height="80" className="progress-ring">
-                <circle className="progress-ring-bg" cx="40" cy="40" r="34" />
-                <circle className="progress-ring-fill" cx="40" cy="40" r="34" />
-              </svg>
-              <div className="score-number">92</div>
-            </div>
-            <div className="score-text-details">
-              <h4>Strong match</h4>
-              <p>+11 vs your last upload</p>
-            </div>
-          </div>
         </div>
       </div>
 

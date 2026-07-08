@@ -23,33 +23,58 @@ export default function Details() {
   const [activePage, setActivePage] = useState('form'); // 'form' or 'template'
 
   useEffect(() => {
-    const extractedData = localStorage.getItem('extractedResumeData');
-    if (extractedData) {
-      try {
-        const parsedData = JSON.parse(extractedData);
-        
-        // Update the form with extracted data
-        if (parsedData.personalInfo) {
-          Object.keys(parsedData.personalInfo).forEach(key => {
-            updatePersonalInfo(key, parsedData.personalInfo[key]);
-          });
-        }
-        
-        // Update array sections
-        const arraySections = ['education', 'experience', 'skills', 'projects', 'certifications', 'languages'];
-        arraySections.forEach(section => {
-          if (parsedData[section] && parsedData[section].length > 0) {
-            updateFormData(section, parsedData[section]);
-          }
-        });
-        
-        // Clear the extracted data from localStorage
-        localStorage.removeItem('extractedResumeData');
-      } catch (error) {
-        console.error('Error parsing extracted data:', error);
-      }
+  const extractedData = localStorage.getItem('extractedResumeData');
+  if (!extractedData) return;
+
+  try {
+    const parsedData = JSON.parse(extractedData);
+    
+    /* 1. MAP PERSONAL PROFILE FIELDS TO PREVENT BREAKAGES */
+    if (parsedData.personal) {
+      const rawName = parsedData.personal.name || "";
+      // Split your name cleanly down space intersections safely
+      const nameParts = rawName.trim().split(/\s+/);
+      const fName = nameParts[0] || "";
+      const lName = nameParts.slice(1).join(" ") || "";
+
+      // Manually map fields to match the context personalInfo schema keys
+      updatePersonalInfo('firstName', fName);
+      updatePersonalInfo('lastName', lName);
+      updatePersonalInfo('email', parsedData.personal.email || "");
+      updatePersonalInfo('phone', parsedData.personal.phone || "");
+      updatePersonalInfo('jobTitle', parsedData.personal.jobTitle || parsedData.personal.title || "");
+      updatePersonalInfo('location', parsedData.personal.location || "");
+      updatePersonalInfo('linkedin', parsedData.personal.linkedin || "");
+      updatePersonalInfo('github', parsedData.personal.github || "");
+      updatePersonalInfo('website', parsedData.personal.website || "");
+      updatePersonalInfo('summary', parsedData.personal.summary || "");
     }
-  }, [updatePersonalInfo, updateFormData]);
+    
+    /* 2. HYDRATE STRUCTURAL WORKSPACE ARRAYS WITH VALIDATED ENTRIES */
+    const arraySections = ['education', 'experience', 'skills', 'projects', 'certifications', 'languages'];
+    
+    arraySections.forEach(section => {
+      if (parsedData[section] && Array.isArray(parsedData[section]) && parsedData[section].length > 0) {
+        
+        // Ensure child nodes contain unique ID keys to prevent React mapping breakages
+        const structuredItems = parsedData[section].map((item, index) => {
+          if (typeof item === 'object' && item !== null) {
+            return { ...item, id: item.id || Date.now() + index };
+          }
+          return item; // Keep primitive values for languages and skills arrays intact
+        });
+
+        updateFormData(section, structuredItems);
+      }
+    });
+    
+    /* 3. FLUSH TEMPORARY CACHE TRACES TO PREVENT HYDRATION RE-RUNS */
+    localStorage.removeItem('extractedResumeData');
+    
+  } catch (error) {
+    console.error('Error parsing extracted data:', error);
+  }
+}, [updatePersonalInfo, updateFormData]);
 
   const sections = [
     { id: 'personal', label: 'Personal Info'},

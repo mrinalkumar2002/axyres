@@ -6,6 +6,7 @@ import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { DownloadIcon, RefreshCw, Share, Edit } from "lucide-react";
 
 const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL
 
@@ -134,13 +135,12 @@ const handleDownload = async () => {
 
             <div className="download-options">
               <div className="options-header">
-                <h2>Download Options</h2>
                 <p>Choose how you want to save or share your resume</p>
               </div>
 
               <div className="options-grid">
                 <div className="option-card">
-                  <div className="option-icon">📄</div>
+                  <div className="option-icon"><DownloadIcon size={20} /></div>
                   <div className="option-content">
                     <h3>Download as PDF</h3>
                     <p>Best for ATS and professional submissions</p>
@@ -155,7 +155,7 @@ const handleDownload = async () => {
                 </div>
 
                 <div className="option-card">
-                  <div className="option-icon">✏️</div>
+                  <div className="option-icon"><Edit size={20} /></div>
                   <div className="option-content">
                     <h3>Edit Resume</h3>
                     <p>Make changes to your information</p>
@@ -166,7 +166,7 @@ const handleDownload = async () => {
                 </div>
 
                 <div className="option-card">
-                  <div className="option-icon">🔄</div>
+                  <div className="option-icon"><RefreshCw size={20} /></div>
                   <div className="option-content">
                     <h3>Change Template</h3>
                     <p>Try a different template design</p>
@@ -177,7 +177,7 @@ const handleDownload = async () => {
                 </div>
 
                 <div className="option-card">
-                  <div className="option-icon">📧</div>
+                  <div className="option-icon"><Share size={20} /></div>
                   <div className="option-content">
                     <h3>Share Resume</h3>
                     <p>Send your resume via email or link</p>

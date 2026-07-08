@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import Cookie from "js-cookie";
 
 const ResumeContext = createContext(null);
 
@@ -13,9 +14,9 @@ const initialFormData = {
     city: "Mumbai",
     state: "Maharastra",
     zipCode: "400001",
-    linkedin: "linkedin.com/in/michael-johnson",
-    github: "github.com/michael",
-    website: "michaeljohnson.vercel.com",
+    linkedin: "https://www.linkedin.com/in/michael-johnson",
+    github: "https://github.com/michael",
+    website: "https://michaeljohnson.vercel.com",
     summary: "Innovative Full Stack Web Developer passionate about bridging the gap between sophisticated backend logic and intuitive frontend design. Experienced in agile methodologies, collaborating with cross-functional teams to deliver high-quality, ATS-optimized software solutions from concept to deployment."
   },
 
@@ -104,13 +105,18 @@ export function ResumeProvider({ children }) {
 
   // 🔥 Load formData from localStorage on first render
   const [formData, setFormData] = useState(() => {
-    const saved = localStorage.getItem("resumeData");
-    return saved ? JSON.parse(saved) : initialFormData;
+    const savedData = localStorage.getItem("resumeData");
+    if (Cookie.get("axyres_user") === "LoggedIn") {
+      return savedData ? JSON.parse(savedData) : initialFormData;
+    }
+    return initialFormData;
   });
 
   // 🔥 Auto-save formData
   useEffect(() => {
-    localStorage.setItem("resumeData", JSON.stringify(formData));
+    if (Cookie.get("axyres_user") === "LoggedIn") {
+      localStorage.setItem("resumeData", JSON.stringify(formData));
+    }
   }, [formData]);
 
   // 🔥 Auto-save template

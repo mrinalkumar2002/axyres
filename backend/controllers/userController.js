@@ -33,14 +33,21 @@ export const Signup = async (req, res) => {
     const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "30d" }
     );
 
-    res.cookie("token", token, {
+    res.cookie("axyres_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    res.cookie("axyres_user", "LoggedIn", {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
     user.password = undefined;
@@ -89,14 +96,21 @@ export const Login = async (req, res) => {
     const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "30d" }
     );
 
-    res.cookie("token", token, {
+    res.cookie("axyres_token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+
+    res.cookie("axyres_user", "LoggedIn", {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
     user.password = undefined;
@@ -114,9 +128,39 @@ export const Login = async (req, res) => {
   }
 };
 
+// ✅ LOGOUT (New Function)
+export const Logout = async (req, res) => {
+  try {
+    // Evict the HTTP cookie by overwriting its expiration dates instantly
+    res.clearCookie("axyres_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
+    res.clearCookie("axyres_user", {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (err) {
+    console.error("Logout error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error during logout",
+    });
+  }
+};
+
+// ✅ GET ME
 export const getMe = async (req, res) => {
   try {
-    const token = req.cookies.token;
+    const token = req.cookies.axyres_token;
     if (!token) {
       return res.status(401).json({ message: "Not authenticated" });
     }
@@ -133,6 +177,3 @@ export const getMe = async (req, res) => {
     return res.status(401).json({ message: "Invalid token" });
   }
 };
-
-
-
