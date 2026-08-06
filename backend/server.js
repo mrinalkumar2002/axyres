@@ -7,6 +7,7 @@ import resumeRouter from "./routes/resumeRouter.js"
 import cookieParser from "cookie-parser"
 import path from "path"
 import { fileURLToPath } from "url"
+import extensionRoutes from "./routes/extensionRoutes.js";
 import dotenv from 'dotenv'
 dotenv.config();
 
@@ -21,13 +22,46 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 
+const allowedOrigins = [
+    "http://localhost:5000",      // Website
+    "http://localhost:5173"       // Vite (if used)
+];
+
 const corsOptions = {
-  // Replace this with your actual frontend URL
-  origin: 'http://localhost:5000', 
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+
+    origin(origin, callback) {
+
+        // Allow Postman/server-to-server requests
+        if (!origin)
+            return callback(null, true);
+
+        // Allow website
+        if (allowedOrigins.includes(origin))
+            return callback(null, true);
+
+        // Allow any Chrome extension
+        if (origin.startsWith("chrome-extension://"))
+            return callback(null, true);
+
+        callback(new Error("Not allowed by CORS"));
+
+    },
+
+    credentials: true,
+
+    methods: ["GET", "POST", "PUT", "DELETE"],
+
+    allowedHeaders: [
+
+        "Content-Type",
+
+        "Authorization"
+
+    ]
+
 };
+
+app.use(cors(corsOptions));
 
 app.use(cors(corsOptions));
 
@@ -39,6 +73,8 @@ app.use('/api/users', userRouter)
 app.use("/api/ai", aiRouter)
 app.use("/api/resume", resumeRouter)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")))
+
+app.use("/api/extension", extensionRoutes);
 
 app.get('/', (req, res) => {
   res.send("API Working")

@@ -65,68 +65,103 @@ export const Signup = async (req, res) => {
   }
 };
 
-// ✅ LOGIN
+
+
+// ==========================
+// LOGIN
+// ==========================
 export const Login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Validate Request
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Email and password are required",
+        message: "Email and password are required.",
       });
     }
 
+    // Find User
     const user = await User.findOne({ email }).select("+password");
+
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Invalid email or password",
+        message: "Invalid email or password.",
       });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid email or password",
-      });
-    }
-
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: "30d" }
+    // Verify Password
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      user.password
     );
 
+    if (!isPasswordCorrect) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password.",
+      });
+    }
+
+    // Create JWT
+    const token = jwt.sign(
+      {
+        id: user._id,
+        email: user.email,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "30d",
+      }
+    );
+
+    // ==========================
+    // AUTH COOKIE (HttpOnly)
+    // ==========================
     res.cookie("axyres_token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
+  httpOnly: true,
+  secure: false,          // localhost
+  sameSite: "lax",
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+});
 
+    // ==========================
+    // EXTENSION DETECTION COOKIE
+    // ==========================
     res.cookie("axyres_user", "LoggedIn", {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-    });
+  httpOnly: false,
+  secure: false,          // localhost
+  sameSite: "lax",
+  maxAge: 30 * 24 * 60 * 60 * 1000,
+});
+  
 
+    // Remove Password
     user.password = undefined;
 
     return res.status(200).json({
       success: true,
-      user,
+      message: "Login successful.",
+      user: {
+        id: user._id,
+        email: user.email,
+        type: user.type,
+        hasResume: !!user.latestResume,
+      },
     });
-  } catch (err) {
-    console.error("Login error:", err);
+
+  } catch (error) {
+    console.error("Login Error:", error);
+
     return res.status(500).json({
       success: false,
-      message: err.message || "Server error",
+      message: "Internal Server Error.",
     });
   }
 };
+
 
 // ✅ LOGOUT (New Function)
 export const Logout = async (req, res) => {

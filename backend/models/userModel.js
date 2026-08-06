@@ -15,7 +15,14 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   type: { type: String, default: "free user" },
 
-  latestResume: resumeSchema, // only one resume
+  latestResume: {
+    templateId: Number,
+    resumeData: Object,
+    pdfUrl: String,
+    atsScore: Number,
+    lastTailoredAt: Date,
+    createdAt: Date
+}// only one resume
 });
 
 export default mongoose.model("User", userSchema);

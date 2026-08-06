@@ -24,8 +24,9 @@ export default function Login() {
     }
     setLoading(true)
     try {
-      await login(values)
-      window.location.href = `${window.location.origin}/details`;
+      await login(values);
+navigate("/details");
+
     } catch (err) {
       setError(err.message)
     } finally {
