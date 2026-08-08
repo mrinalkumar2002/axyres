@@ -25,8 +25,7 @@ export default function Login() {
     setLoading(true)
     try {
       await login(values);
-navigate("/details");
-
+      navigate("/resume-start");
     } catch (err) {
       setError(err.message)
     } finally {

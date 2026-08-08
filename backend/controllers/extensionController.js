@@ -53,9 +53,17 @@ export const extensionStatus = async (req, res) => {
 
     const user = req.user;
 
-    const resumeExists =
-      !!user.latestResume &&
-      !!user.latestResume.resumeData;
+    let resumeExists = false;
+    if (user.latestResume && user.latestResume.resumeData) {
+      const data = user.latestResume.resumeData;
+      const hasPersonalInfo = data.personalInfo?.firstName || data.personalInfo?.email || data.personalInfo?.phone;
+      const hasExperience = data.experience && data.experience.length > 0;
+      const hasEducation = data.education && data.education.length > 0;
+      
+      if (hasPersonalInfo || hasExperience || hasEducation) {
+        resumeExists = true;
+      }
+    }
 
     return res.status(200).json({
       success: true,
@@ -85,9 +93,21 @@ export const checkResume = async (req, res) => {
   try {
     const user = req.user;
 
+    let resumeExists = false;
+    if (user.latestResume && user.latestResume.resumeData) {
+      const data = user.latestResume.resumeData;
+      const hasPersonalInfo = data.personalInfo?.firstName || data.personalInfo?.email || data.personalInfo?.phone;
+      const hasExperience = data.experience && data.experience.length > 0;
+      const hasEducation = data.education && data.education.length > 0;
+      
+      if (hasPersonalInfo || hasExperience || hasEducation) {
+        resumeExists = true;
+      }
+    }
+
     return res.status(200).json({
       success: true,
-      resumeExists: !!user.latestResume?.resumeData,
+      resumeExists,
     });
   } catch (error) {
     return res.status(500).json({

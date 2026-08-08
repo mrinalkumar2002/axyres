@@ -5,89 +5,26 @@ const ResumeContext = createContext(null);
 
 const initialFormData = {
   personalInfo: {
-    firstName: "Michael",
-    lastName: "Johnson",
-    jobTitle: "Full Stack Developer",
-    email: "michael123@gmail.com",
-    phone: "+91 98765 43210",
-    address: "Mumbai",
-    city: "Mumbai",
-    state: "Maharastra",
-    zipCode: "400001",
-    linkedin: "https://www.linkedin.com/in/michael-johnson",
-    github: "https://github.com/michael",
-    website: "https://michaeljohnson.vercel.com",
-    summary: "Innovative Full Stack Web Developer passionate about bridging the gap between sophisticated backend logic and intuitive frontend design. Experienced in agile methodologies, collaborating with cross-functional teams to deliver high-quality, ATS-optimized software solutions from concept to deployment."
+    firstName: "",
+    lastName: "",
+    jobTitle: "",
+    email: "",
+    phone: "",
+    address: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    linkedin: "",
+    github: "",
+    website: "",
+    summary: ""
   },
-
-  education: [
-    {
-      id: 1,
-      school: "National Institute of Technology, Srinagar",
-      degree: "B.Tech",
-      field: "Electrical Engineering",
-      gpa: "8.2",
-      startDate: "2021",
-      endDate: "2025",
-      location: "Srinagar, J&K",
-      description: "Focused on core computational engineering, data structures, and algorithmic systems engineering."
-    },
-    {
-      id: 2,
-      school: "Industry Ready Certification",
-      degree: "Advanced Certification",
-      field: "Full-stack Development",
-      gpa: "N/A",
-      startDate: "2025",
-      endDate: "2025",
-      location: "Online",
-      description: "Intensive specialization program mastering modern JavaScript frameworks, MERN stack application design, and responsive interface building."
-    }
-  ],
-
-  experience: [
-    {
-      id: 3,
-      company: "Advith Itec Private Limited",
-      role: "Frontend Web Developer Intern",
-      location: "Remote",
-      startDate: "Sept 2025",
-      endDate: "Dec 2025",
-      description: "Collaborated on production-level UI feature development using React.js and modern state management principles.",
-      achievements: "Optimized dashboard interface rendering speeds by 20% and resolved critical state propagation bottlenecks across application routes."
-    }
-  ],
-
-  skills: [
-    "Frontend: HTML, CSS, Bootstrap, JavaScript, React.js",
-    "Backend: Node.js, Express, Python",
-    "Databases & Tools: MongoDB, SQLite, Git, DSA, C++, OOPS"
-  ],
-
-  projects: [
-    {
-      id: 4,
-      title: "Nxt Watch",
-      description: "Developed a comprehensive video streaming platform inspired by YouTube. Features dynamic video category tabs (Trending, Gaming, Saved videos), customized theme switching (Light/Dark mode), user search queries, and sticky video player layouts.",
-      link: "https://github.com/jaganmohan-j/nxt-watch",
-      technologies: "React.js, JavaScript, CSS, Bootstrap, REST APIs, JWT Token, Client-side Routing",
-      startDate: "Jan 2026",
-      endDate: "Feb 2026"
-    },
-    {
-      id: 5,
-      title: "YatraYaan",
-      description: "Built a robust, full-stack tour, travel, and vehicle rental web platform enabling users to seamlessly look up travel configurations, organize vehicle itineraries, and manage secure rental bookings over a clean custom dashboard context.",
-      link: "https://github.com/jaganmohan-j/yatrayaan",
-      technologies: "HTML, CSS, JavaScript, React.js, Node.js, Express, MongoDB",
-      startDate: "Mar 2026",
-      endDate: "Apr 2026"
-    }
-  ],
-
+  education: [],
+  experience: [],
+  skills: [],
+  projects: [],
   certifications: [],
-
-  languages: ["English", "Hindi"]
+  languages: []
 };
 
 export function ResumeProvider({ children }) {
@@ -104,17 +41,61 @@ export function ResumeProvider({ children }) {
     return initialFormData;
   });
 
-  // 🔥 Auto-save formData
+  const [isBackendSynced, setIsBackendSynced] = useState(false);
+
+  // 🔥 Fetch from backend on initial load
+  useEffect(() => {
+    const fetchLatest = async () => {
+      if (Cookie.get("axyres_user") === "LoggedIn") {
+        try {
+          const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
+          const res = await fetch(`${BASE_URL}/api/resume/latest`, { credentials: "include" });
+          const data = await res.json();
+          if (data.success && data.resume && data.resume.resumeData) {
+            // Only overwrite if backend actually has data
+            if (Object.keys(data.resume.resumeData).length > 0) {
+              setFormData(data.resume.resumeData);
+              setTemplate(data.resume.templateId || 1);
+              localStorage.setItem("resumeData", JSON.stringify(data.resume.resumeData));
+              localStorage.setItem("selectedTemplate", data.resume.templateId || 1);
+            }
+          }
+        } catch (e) {
+          console.error("Failed to fetch latest resume", e);
+        }
+      }
+      setIsBackendSynced(true);
+    };
+    fetchLatest();
+  }, []);
+
+  // 🔥 Auto-save formData & template to localStorage & Backend
   useEffect(() => {
     if (Cookie.get("axyres_user") === "LoggedIn") {
       localStorage.setItem("resumeData", JSON.stringify(formData));
+      localStorage.setItem("selectedTemplate", template);
+      
+      if (isBackendSynced) {
+        const timer = setTimeout(() => {
+          const BASE_URL = import.meta.env.VITE_REACT_APP_API_URL;
+          const formDataToSend = new FormData();
+          formDataToSend.append("templateId", template);
+          formDataToSend.append("resumeData", JSON.stringify(formData));
+          
+          fetch(`${BASE_URL}/api/resume/save-latest`, {
+            method: "POST",
+            body: formDataToSend,
+            credentials: "include",
+          }).catch(e => console.error("Auto-save failed", e));
+        }, 2500); // 2.5s debounce
+        
+        return () => clearTimeout(timer);
+      }
+    } else {
+      localStorage.setItem("resumeData", JSON.stringify(formData));
+      localStorage.setItem("selectedTemplate", template);
     }
-  }, [formData]);
-
-  // 🔥 Auto-save template
-  useEffect(() => {
-    localStorage.setItem("selectedTemplate", template);
-  }, [template]);
+  }, [formData, template, isBackendSynced]);
 
   /* ---------------- BASIC UPDATERS ---------------- */
 

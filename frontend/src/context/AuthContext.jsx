@@ -118,6 +118,11 @@ const logout = async () => {
 
   setUser(null);
 
+  // Clear local resume data to prevent data leakage between accounts
+  localStorage.removeItem("resumeData");
+  localStorage.removeItem("extractedResumeData");
+  localStorage.removeItem("selectedTemplate");
+
   try {
     if (window.chrome?.runtime) {
       chrome.runtime.sendMessage(
