@@ -5,24 +5,46 @@ import path from "path";
 export const saveLatestResume = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { templateId, resumeData } = req.body;
+    let { templateId, resumeData } = req.body;
 
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "No PDF uploaded",
-      });
+    // Handle stringified JSON from FormData or plain Object from JSON body
+    if (typeof resumeData === "string") {
+      try {
+        resumeData = JSON.parse(resumeData);
+      } catch (e) {
+        console.error("Failed to parse resumeData string");
+      }
     }
 
-    const pdfUrl = `/uploads/${req.file.filename}`;
+    let pdfUrl;
+    if (req.file) {
+      pdfUrl = `/uploads/${req.file.filename}`;
+    }
 
-    const user = await User.findById(userId);
+    const updatePayload = {
+      "latestResume.templateId": templateId || 1,
+      "latestResume.resumeData": resumeData,
+      "latestResume.source": req.file ? "uploaded" : "tailored",
+      "latestResume.updatedAt": new Date()
+    };
+    
+    // Preserve old pdfUrl if no new file is uploaded
+    if (pdfUrl) {
+      updatePayload["latestResume.pdfUrl"] = pdfUrl;
+    }
 
-    // 🔥 Delete old resume file if exists
-    if (user.latestResume && user.latestResume.pdfUrl) {
+    // 🔥 Atomic Overwrite (Single Database Operation)
+    const oldUser = await User.findOneAndUpdate(
+      { _id: userId },
+      { $set: updatePayload },
+      { new: false } // Returns the old document before update
+    );
+
+    // 🔥 Delete old resume file ONLY if a NEW file was uploaded
+    if (req.file && oldUser && oldUser.latestResume && oldUser.latestResume.pdfUrl) {
       const oldPath = path.join(
         process.cwd(),
-        user.latestResume.pdfUrl
+        oldUser.latestResume.pdfUrl
       );
 
       fs.unlink(oldPath, (err) => {
@@ -30,20 +52,10 @@ export const saveLatestResume = async (req, res) => {
       });
     }
 
-    // 🔥 Save new resume
-    user.latestResume = {
-      templateId,
-      resumeData: JSON.parse(resumeData),
-      pdfUrl,
-      createdAt: new Date(),
-    };
-
-    await user.save();
-
     res.json({
       success: true,
       message: "Latest resume saved",
-      pdfUrl,
+      pdfUrl: pdfUrl || (oldUser?.latestResume?.pdfUrl || null),
     });
   } catch (err) {
     console.error(err);

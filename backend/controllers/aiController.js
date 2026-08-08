@@ -43,7 +43,7 @@ export const parseResume = async (req, res) => {
     if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
 
     const completion = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "llama-3.3-70b-versatile",
       temperature: 0.1,
       messages: [
         {

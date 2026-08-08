@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Home from './pages/Home.jsx'
 import Contact from './pages/Contact.jsx'
 import Login from './pages/Login.jsx'
@@ -16,6 +16,7 @@ export default function App() {
       <Route path='/contact' element={<Contact/>}/>
       <Route path='/templates' element={<Templates/>}/>
       <Route path="/resume-start" element={<ResumeStart />} />
+      <Route path="/resume" element={<Navigate to="/resume-start" replace />} />
       <Route path='/details' element={<Details/>}/>
       <Route path='/download' element={ <Download/> }/>
       <Route path="/login" element={<Login />} />

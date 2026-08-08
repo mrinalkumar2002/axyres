@@ -19,6 +19,15 @@ export default function ResumeStart() {
   const queryParams = new URLSearchParams(location.search);
   const templateId = queryParams.get('template') || location.state?.templateId || 1;
 
+  // Modal State for missing resume alert
+  const [showMissingResumeModal, setShowMissingResumeModal] = useState(false);
+
+  React.useEffect(() => {
+    if (queryParams.get('alert') === 'missing_resume') {
+      setShowMissingResumeModal(true);
+    }
+  }, [location.search]);
+
   const handleBuildFromScratch = () => {
     navigate("/details");
   };
@@ -100,6 +109,41 @@ export default function ResumeStart() {
 
   return (
     <>
+      {showMissingResumeModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          backgroundColor: 'rgba(0, 0, 0, 0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 99999, backdropFilter: 'blur(5px)'
+        }}>
+          <div style={{
+            background: 'white', padding: '40px', borderRadius: '16px', maxWidth: '500px', width: '90%',
+            textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', border: '2px solid #000'
+          }}>
+            <div style={{ fontSize: '48px', marginBottom: '20px' }}>⚠️</div>
+            <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '16px', color: '#111' }}>
+              Action Required
+            </h2>
+            <p style={{ fontSize: '16px', color: '#555', marginBottom: '30px', lineHeight: '1.5' }}>
+              You tried to <strong>Review</strong> or <strong>Download</strong> your resume using the Axyres Chrome Extension, but we couldn't find one on your account. 
+              <br/><br/>
+              Please upload your existing resume here or build one from scratch to continue.
+            </p>
+            <button 
+              onClick={() => setShowMissingResumeModal(false)}
+              style={{
+                backgroundColor: '#111', color: 'white', padding: '14px 28px', border: 'none',
+                borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer',
+                transition: 'transform 0.2s'
+              }}
+              onMouseOver={(e) => e.target.style.transform = 'scale(1.05)'}
+              onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
+            >
+              I Understand, Let's Build
+            </button>
+          </div>
+        </div>
+      )}
+
       <Navbar />
       <div className="resume-start-page">
         <div className="resume-start-container">
