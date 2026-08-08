@@ -59,6 +59,7 @@ JSON FORMAT:
 {
   "personal": {
     "name": "",
+    "jobTitle": "",
     "email": "",
     "phone": "",
     "linkedin": "",
@@ -83,6 +84,7 @@ JSON FORMAT:
     }
   ],
   "skills": [],
+  "languages": [],
   "projects": [
     {
       "title": "",

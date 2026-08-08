@@ -85,17 +85,9 @@ const initialFormData = {
     }
   ],
 
-  certifications: [
-    {
-      id: 6,
-      name: "Full Stack Development Fellow",
-      issuer: "NxtWave CCBP",
-      date: "2025",
-      credentialId: "CCBP-4080-JM"
-    }
-  ],
+  certifications: [],
 
-  languages: ["English", "Marathi", "Hindi"]
+  languages: ["English", "Hindi"]
 };
 
 export function ResumeProvider({ children }) {

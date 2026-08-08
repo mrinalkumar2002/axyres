@@ -3,17 +3,19 @@ export default function Template2({ data = {} }) {
     return data.personalInfo?.name || "John Doe";
   };
   
-  const hasSkills = data.skills?.some(skill => skill && skill.trim());
-  const hasLanguages = data.languages?.some(lang => lang && lang.trim());
-  const hasExperience = data.experience?.length > 0;
-  const hasProjects = data.projects?.length > 0;
-  const hasCertifications = data.certifications?.length > 0;
-  const hasEducation = data.education?.length > 0;
+  const hasSkills = data.skills?.some(skill => skill && typeof skill === 'string' && skill.trim());
+  const hasLanguages = data.languages?.some(lang => lang && typeof lang === 'string' && lang.trim());
+  const hasExperience = data.experience?.some(exp => exp && (exp.company?.trim() || exp.role?.trim() || exp.description?.trim()));
+  const hasProjects = data.projects?.some(proj => proj && (proj.title?.trim() || proj.description?.trim()));
+  const hasCertifications = data.certifications?.some(cert => cert && (cert.name?.trim() || cert.issuer?.trim()));
+  const hasEducation = data.education?.some(edu => edu && (edu.school?.trim() || edu.degree?.trim()));
   
   const contactInfo = [
     data.personalInfo?.email,
     data.personalInfo?.phone,
-    data.personalInfo?.location
+    data.personalInfo?.location,
+    data.personalInfo?.linkedin,
+    data.personalInfo?.github
   ].filter(Boolean);
   
   return (

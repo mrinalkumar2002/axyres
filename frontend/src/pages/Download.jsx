@@ -46,11 +46,67 @@ const handleDownload = async () => {
 
     const templateId = localStorage.getItem("selectedTemplate") || 1;
 
+    // Try to generate a TRUE, ATS-friendly PDF via the Extension Backend (Puppeteer)
+    try {
+      const response = await fetch("http://localhost:5001/api/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resume: { ...formData, templateId } })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data && result.data.pdfUrl) {
+          // Trigger download of the generated PDF
+          const link = document.createElement("a");
+          link.href = result.data.pdfUrl;
+          link.download = "resume.pdf";
+          link.target = "_blank";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          // Save to Axyres backend too (optional, or we can just skip for now)
+          setDownloading(false);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn("Could not reach ATS-friendly PDF generator. Falling back to basic PDF.", err);
+    }
+
+    // Temporarily remove height/overflow restrictions to capture full resume
+    const originalHeight = resumeElement.style.height;
+    const originalOverflow = resumeElement.style.overflow;
+    const originalTransform = resumeElement.style.transform;
+    const childElement = resumeElement.firstElementChild;
+    const childOriginalOverflow = childElement ? childElement.style.overflow : "";
+    const childOriginalHeight = childElement ? childElement.style.height : "";
+
+    resumeElement.style.height = "auto";
+    resumeElement.style.overflow = "visible";
+    resumeElement.style.transform = "none";
+    if (childElement) {
+      childElement.style.overflow = "visible";
+      childElement.style.height = "auto";
+    }
+
     // Capture canvas
     const canvas = await html2canvas(resumeElement, {
       scale: 2,
       useCORS: true,
+      scrollY: -window.scrollY,
+      windowHeight: resumeElement.scrollHeight
     });
+
+    // Restore original styles
+    resumeElement.style.height = originalHeight;
+    resumeElement.style.overflow = originalOverflow;
+    resumeElement.style.transform = originalTransform;
+    if (childElement) {
+      childElement.style.overflow = childOriginalOverflow;
+      childElement.style.height = childOriginalHeight;
+    }
 
     const imgData = canvas.toDataURL("image/png");
 
@@ -59,22 +115,20 @@ const handleDownload = async () => {
     const imgWidth = 210; // A4 width in mm
     const pageHeight = 297;
 
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let finalImgWidth = imgWidth;
+    let finalImgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    let heightLeft = imgHeight;
-    let position = 0;
-
-    // First page
-    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
-
-    // Extra pages if needed
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+    // Strict 1-page fit
+    if (finalImgHeight > pageHeight) {
+      const scaleRatio = pageHeight / finalImgHeight;
+      finalImgHeight = pageHeight;
+      finalImgWidth = finalImgWidth * scaleRatio;
     }
+
+    const xOffset = (imgWidth - finalImgWidth) / 2;
+
+    // Add image scaled to fit perfectly on 1 page
+    pdf.addImage(imgData, "PNG", xOffset, 0, finalImgWidth, finalImgHeight);
 
     const pdfBlob = pdf.output("blob");
 

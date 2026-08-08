@@ -2,12 +2,12 @@ import React from 'react';
 
 export default function Template3({ data = {} }) {
   // Maintaining your exact initial logic mapping structure for safety
-  const hasSkills = data.skills?.some(skill => skill && skill.trim());
-  const hasLanguages = data.languages?.some(lang => lang && lang.trim());
-  const hasExperience = data.experience?.length > 0;
-  const hasProjects = data.projects?.length > 0;
-  const hasCertifications = data.certifications?.length > 0;
-  const hasEducation = data.education?.length > 0;
+  const hasSkills = data.skills?.some(skill => skill && typeof skill === 'string' && skill.trim());
+  const hasLanguages = data.languages?.some(lang => lang && typeof lang === 'string' && lang.trim());
+  const hasExperience = data.experience?.some(exp => exp && (exp.company?.trim() || exp.role?.trim() || exp.description?.trim()));
+  const hasProjects = data.projects?.some(proj => proj && (proj.title?.trim() || proj.description?.trim()));
+  const hasCertifications = data.certifications?.some(cert => cert && (cert.name?.trim() || cert.issuer?.trim()));
+  const hasEducation = data.education?.some(edu => edu && (edu.school?.trim() || edu.degree?.trim()));
 
   return (
     <div className="resume-scroll-wrapper">
@@ -27,6 +27,9 @@ export default function Template3({ data = {} }) {
             )}
             {data.personalInfo?.linkedin && (
               <span className="contact-item">🔗 {data.personalInfo.linkedin}</span>
+            )}
+            {data.personalInfo?.github && (
+              <span className="contact-item">💻 {data.personalInfo.github}</span>
             )}
             {data.personalInfo?.location && (
               <span className="contact-item">📍 {data.personalInfo.location}</span>
@@ -127,10 +130,10 @@ export default function Template3({ data = {} }) {
           </section>
         )}
 
-        {/* KEY ACHIEVEMENTS SECTION */}
+        {/* CERTIFICATIONS SECTION */}
         {hasCertifications && (
           <section className="timeline-section">
-            <h2 className="section-title">KEY ACHIEVEMENTS</h2>
+            <h2 className="section-title">CERTIFICATIONS</h2>
             <div className="achievements-grid-layout">
               {data.certifications.map((cert, i) => (
                 <div key={i} className="achievement-card-cell print-avoid-break">

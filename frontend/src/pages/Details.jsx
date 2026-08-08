@@ -83,7 +83,6 @@ export default function Details() {
     { id: 'skills', label: 'Skills'},
     { id: 'projects', label: 'Projects'},
     { id: 'certifications', label: 'Certifications'},
-    { id: 'achievements', label: 'Achievements'},
     { id: 'languages', label: 'Languages'}
   ];
 

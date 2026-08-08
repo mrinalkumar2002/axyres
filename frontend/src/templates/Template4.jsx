@@ -3,12 +3,12 @@ export default function Template4({ data = {} }) {
     return data.personalInfo?.name || "John Doe";
   };
   
-  const hasSkills = data.skills?.some(skill => skill && skill.trim());
-  const hasLanguages = data.languages?.some(lang => lang && lang.trim());
-  const hasExperience = data.experience?.length > 0;
-  const hasProjects = data.projects?.length > 0;
-  const hasCertifications = data.certifications?.length > 0;
-  const hasEducation = data.education?.length > 0;
+  const hasSkills = data.skills?.some(skill => skill && typeof skill === 'string' && skill.trim());
+  const hasLanguages = data.languages?.some(lang => lang && typeof lang === 'string' && lang.trim());
+  const hasExperience = data.experience?.some(exp => exp && (exp.company?.trim() || exp.role?.trim() || exp.description?.trim()));
+  const hasProjects = data.projects?.some(proj => proj && (proj.title?.trim() || proj.description?.trim()));
+  const hasCertifications = data.certifications?.some(cert => cert && (cert.name?.trim() || cert.issuer?.trim()));
+  const hasEducation = data.education?.some(edu => edu && (edu.school?.trim() || edu.degree?.trim()));
   
   return (
     <div className="template-professional">
@@ -33,6 +33,16 @@ export default function Template4({ data = {} }) {
             {data.personalInfo?.location && (
               <div className="contact-item">
                 <span>{data.personalInfo.location}</span>
+              </div>
+            )}
+            {data.personalInfo?.linkedin && (
+              <div className="contact-item">
+                <span>{data.personalInfo.linkedin}</span>
+              </div>
+            )}
+            {data.personalInfo?.github && (
+              <div className="contact-item">
+                <span>{data.personalInfo.github}</span>
               </div>
             )}
           </div>
