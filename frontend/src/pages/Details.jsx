@@ -65,6 +65,9 @@ export default function Details() {
         });
 
         updateFormData(section, structuredItems);
+      } else {
+        // OVERWRITE WITH EMPTY ARRAY TO PREVENT BLEEDING FROM PREVIOUS RESUMES
+        updateFormData(section, []);
       }
     });
     

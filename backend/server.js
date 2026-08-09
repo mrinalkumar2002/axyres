@@ -30,13 +30,12 @@ const allowedOrigins = [
 const corsOptions = {
 
     origin(origin, callback) {
-
         // Allow Postman/server-to-server requests
         if (!origin)
             return callback(null, true);
 
-        // Allow website
-        if (allowedOrigins.includes(origin))
+        // Allow any localhost origin (handles 5173, 5174, etc.)
+        if (origin.startsWith("http://localhost"))
             return callback(null, true);
 
         // Allow any Chrome extension
@@ -44,7 +43,6 @@ const corsOptions = {
             return callback(null, true);
 
         callback(new Error("Not allowed by CORS"));
-
     },
 
     credentials: true,
